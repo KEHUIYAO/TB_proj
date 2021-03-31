@@ -33,25 +33,25 @@ num = adj_num
 
 
 # optional, select a subset of the data to do the analysis
-data_cleaned = data_cleaned[1:10,]
+#data_cleaned = data_cleaned[1:100,]
 
 
 
 # Set initial values for the model ----------------------------------------
 initialize_variables <- function(){
-  mu = runif(1,-6,-4)
+  mu = runif(1, -1, 1)
   # sum to zero constraint
   mbeta0 = 0
   fbeta0 = runif(1,-1,1)
   # set to zero constraint
-  mcar_age = rnorm(Tage)
+  mcar_age = rnorm(Tage, sd=0.1)
   mcar_age[1] = 0
-  fcar_age = rnorm(Tage)
+  fcar_age = rnorm(Tage, sd=0.1)
   fcar_age[1] = 0
   mhprec <- rgamma(1,0.1,0.1)
   fhprec <- rgamma(1,0.1,0.1)
-  mhetero = rnorm(N)
-  fhetero = rnorm(N)
+  mhetero = rnorm(N, sd=0.1)
+  fhetero = rnorm(N, sd=0.1)
   mhetero[1] = 0
   fhetero[1] = 0
   R = matrix(c(0.015,0,0,0.2),ncol=2) # these numbers are directly copied from the paper
@@ -67,16 +67,16 @@ initialize_variables <- function(){
   Cov <- inverse(omega)
   achol <- t(chol(Cov))
   # Based on matrix algebra, the mvspace will also have sum to zero constraint
-  for (i in 1:N){  
-    mvspace[1:2,i] <- achol%*%u[1:2,i] 
-  }
-  for (i in 1:2){
-    u[i,1:N] <- u[i,1:N] / sd(mvspace[i,1:N])
-  }
+  # for (i in 1:N){  
+  #   mvspace[1:2,i] <- achol%*%u[1:2,i] 
+  # }
+  # for (i in 1:2){
+  #   u[i,1:N] <- u[i,1:N] / sd(mvspace[i,1:N])
+  # }
   tmprec = rgamma(1,0.01, 0.01)  
   tfprec = rgamma(1,0.01, 0.01)
-  mcar_time = rnorm(Ttime)
-  fcar_time = rnorm(Ttime)
+  mcar_time = rnorm(Ttime, sd=0.1)
+  fcar_time = rnorm(Ttime, sd=0.1)
   mcar_time[1] = 0
   fcar_time[1] = 0
   return(list(mu = mu, mbeta0 = mbeta0, fbeta0 = fbeta0, mcar_age = mcar_age, fcar_age = fcar_age, 
@@ -88,19 +88,21 @@ initialize_variables <- function(){
 # To avoid the term in the exponential function explode, we need to check if the initial value is appropriate
 check_initial_condition <- function(){
   m = nrow(data_cleaned)
-  mu = runif(1,-6,-4)
+  mu = runif(1,-1,1)
+  #mu = 0
   # sum to zero constraint
   mbeta0 = 0
   fbeta0 = runif(1,-1,1)
+  #fbeta0 = 0
   # set to zero constraint
-  mcar_age = rnorm(Tage)
+  mcar_age = rnorm(Tage, sd=0.1)
   mcar_age[1] = 0
-  fcar_age = rnorm(Tage)
+  fcar_age = rnorm(Tage, sd=0.1)
   fcar_age[1] = 0
   mhprec <- rgamma(1,0.1,0.1)
   fhprec <- rgamma(1,0.1,0.1)
-  mhetero = rnorm(N)
-  fhetero = rnorm(N)
+  mhetero = rnorm(N, sd=0.1)
+  fhetero = rnorm(N,sd=0.1)
   mhetero[1] = 0
   fhetero[1] = 0
   R = matrix(c(0.015,0,0,0.2),ncol=2) # these numbers are directly copied from the paper
@@ -116,16 +118,18 @@ check_initial_condition <- function(){
   Cov <- inverse(omega)
   achol <- t(chol(Cov))
   # Based on matrix algebra, the mvspace will also have sum to zero constraint
-  for (i in 1:N){  
-    mvspace[1:2,i] <- achol%*%u[1:2,i] 
-  }
-  for (i in 1:2){
-    u[i,1:N] <- u[i,1:N] / sd(mvspace[i,1:N])
-  }
+  # for (i in 1:N){  
+  #   mvspace[1:2,i] <- achol%*%u[1:2,i] 
+  # }
+  # for (i in 1:2){
+  #   u[i,1:N] <- u[i,1:N] / sd(mvspace[i,1:N])
+  # }
+  
+  
   tmprec = rgamma(1,0.01, 0.01)  
   tfprec = rgamma(1,0.01, 0.01)
-  mcar_time = rnorm(Ttime)
-  fcar_time = rnorm(Ttime)
+  mcar_time = rnorm(Ttime, sd = 0.1)
+  fcar_time = rnorm(Ttime, sd = 0.1)
   mcar_time[1] = 0
   fcar_time[1] = 0
   data = data_cleaned
@@ -134,13 +138,14 @@ check_initial_condition <- function(){
   for (j in 1:m) {
     
     for (k in 1:data[j,3]) {
-      t
+      
       dayhaz[j,k]<-1/2* exp(mu + (1-data[j,2])*(fbeta0+fcar_age[k]+fcar_time[data[j,5]+k])+data[j,2]*(mbeta0+mcar_age[k]+mcar_time[data[j,5]+k])+mvspace[1,data[j,1]]*data[j,2]+mvspace[2,data[j,1]]*(1-data[j,2])+
                               mhetero[data[j,1]]*data[j,2]+fhetero[data[j,1]]*(1-data[j,2]))
       
       
     } 
-    
+    print(sum(dayhaz[j,1:data[j,3]]))
+    print(data[j,2])
     p[j] <-1-exp(-sum(dayhaz[j,1:data[j,3]]))
   } 
   
