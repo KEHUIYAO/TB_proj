@@ -39,7 +39,7 @@ num = adj_num
 
 # Set initial values for the model ----------------------------------------
 initialize_variables <- function(){
-  mu = runif(1, -1, 1)
+  mu = runif(1, -2, 0)
   # sum to zero constraint
   mbeta0 = 0
   fbeta0 = runif(1,-1,1)
@@ -59,7 +59,8 @@ initialize_variables <- function(){
   mprec = rgamma(1,0.1,0.1)
   fprec = rgamma(1,0.1,0.1)
   # sum to zero constraint later will be applied on u based on R nimble built-in functionality
-  u = matrix(rnorm(2*N),nrow = 2, ncol = N)
+  #u = matrix(rnorm(2*N),nrow = 2, ncol = N)
+  u = matrix(0, nrow = 2, ncol = N)
   for (i in 1:2){
     u[i,1:N] <- u[i,1:N] - mean(u[i,1:N])
   }
@@ -88,7 +89,7 @@ initialize_variables <- function(){
 # To avoid the term in the exponential function explode, we need to check if the initial value is appropriate
 check_initial_condition <- function(){
   m = nrow(data_cleaned)
-  mu = runif(1,-1,1)
+  mu = runif(1,-2, 0)
   #mu = 0
   # sum to zero constraint
   mbeta0 = 0
@@ -110,7 +111,8 @@ check_initial_condition <- function(){
   mprec = rgamma(1,0.1,0.1)
   fprec = rgamma(1,0.1,0.1)
   # sum to zero constraint later will be applied on u based on R nimble built-in functionality
-  u = matrix(rnorm(2*N),nrow = 2, ncol = N)
+  # u = matrix(rnorm(2*N),nrow = 2, ncol = N)
+  u = matrix(0, nrow = 2, ncol = N)
   for (i in 1:2){
     u[i,1:N] <- u[i,1:N] - mean(u[i,1:N])
   }
