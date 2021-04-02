@@ -141,7 +141,11 @@ model <- nimbleCode( {
   cov2 <- 1 / prec2
   cov12 <- 1 / prec12
   
-  Cov <- matrix(c(cov1, cov12, cov12, cov2), 2, 2)
+  Cov[1,1] <- cov1
+  Cov[2,2] <- cov2
+  Cov[1,2] <- cov12
+  Cov[2,1] <- cov12
+  
   #omega[1:2,1:2] ~ dwish(R[1:2,1:2],2)    
   #Cov[1:2,1:2] <- inverse(omega[1:2,1:2])
   achol[1:2,1:2] <- t(chol(Cov[1:2,1:2]))
