@@ -46,9 +46,7 @@ initialize_variables <- function(){
   mprec = rgamma(1, 2, 1)
   fprec = rgamma(1, 2, 1)
   u = matrix(0, nrow = 2, ncol = N)
-  cov1 = 1
-  cov2 = 1
-  cov12 = 0
+  omega = matrix(c(1,0,0,1), 2, 2)
   tmprec = rgamma(1,0.01, 0.01)  
   tfprec = rgamma(1,0.01, 0.01)
   mcar_time = rnorm(Ttime, sd=0.1)
@@ -64,7 +62,7 @@ initialize_variables <- function(){
   
   return(list(mu = mu, mbeta0 = mbeta0, fbeta0 = fbeta0, mcar_age = mcar_age, fcar_age = fcar_age, 
               mhprec = mhprec, fhprec = fhprec, mhetero = mhetero, fhetero = fhetero,
-              cov1=cov1,cov2=cov2,cov12=cov12, mprec = mprec, fprec = fprec, u = u, tmprec = tmprec, tfprec = tfprec,
+              omega=omega, mprec = mprec, fprec = fprec, u = u, tmprec = tmprec, tfprec = tfprec,
               mcar_time = mcar_time, fcar_time = fcar_time))
 }
 
@@ -134,20 +132,8 @@ model <- nimbleCode( {
   }
   
   # spatially dependent part
-  prec1 ~ dgamma(2, 1)
-  prec2 ~ dgamma(2, 1)
-  prec12 ~ dgamma(2, 1)
-  cov1 <- 1 / prec1
-  cov2 <- 1 / prec2
-  cov12 <- 1 / prec12
-  
-  Cov[1,1] <- cov1
-  Cov[2,2] <- cov2
-  Cov[1,2] <- cov12
-  Cov[2,1] <- cov12
-  
-  #omega[1:2,1:2] ~ dwish(R[1:2,1:2],2)    
-  #Cov[1:2,1:2] <- inverse(omega[1:2,1:2])
+  omega[1:2,1:2] ~ dwish(R[1:2,1:2],2)    
+  Cov[1:2,1:2] <- inverse(omega[1:2,1:2])
   achol[1:2,1:2] <- t(chol(Cov[1:2,1:2]))
   #cor12 <- Cov[1,2]/(sqrt(Cov[1,1])*sqrt(Cov[2,2]))
   for (k in 1:2){
@@ -156,8 +142,15 @@ model <- nimbleCode( {
     u[k,1:N] ~ dcar_normal(adj[1:length_adj], weights[1:length_adj], num[1:N], sprec[k], zero_mean = 1)
   }
   for (i in 1:N){  
-    mvspace[1:2,i] <- achol[1:2,1:2]%*%u[1:2,i] 
+    mvspace_temp[1:2,i] <- achol[1:2,1:2]%*%u[1:2,i] 
   }
+  
+  mvspace[1, 1:N] <- mvspace_temp[1, 1:N] / sd(mvspace_temp[1, 1:N])
+  mvspace[2, 1:N] <- mvspace_temp[2, 1:N] / sd(mvspace_temp[2, 1:N])
+  
+  
+  
+  
   
   # RW1 model on age effect
   #mprec~dgamma(0.1,0.1)
@@ -211,7 +204,8 @@ nimble_constant <- list(
   adj = adj,
   weights = weights,
   num = num,
-  length_adj = length(adj)
+  length_adj = length(adj),
+  R = matrix(c(0.015, 0, 0, 0.2),2, 2)
 )
 
 inits <- function(){
