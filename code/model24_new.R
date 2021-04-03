@@ -145,8 +145,8 @@ model <- nimbleCode( {
     mvspace_temp[1:2,i] <- achol[1:2,1:2]%*%u[1:2,i] 
   }
   
-  mvspace[1, 1:N] <- mvspace_temp[1, 1:N] / sd(mvspace_temp[1, 1:N])
-  mvspace[2, 1:N] <- mvspace_temp[2, 1:N] / sd(mvspace_temp[2, 1:N])
+  mvspace[1, 1:N] <- mvspace_temp[1, 1:N] / (sd(mvspace_temp[1, 1:N]) + 0.001)
+  mvspace[2, 1:N] <- mvspace_temp[2, 1:N] / (sd(mvspace_temp[2, 1:N]) + 0.001)
   
   
   
