@@ -46,9 +46,9 @@ initialize_variables <- function(){
   mprec = rgamma(1, 2, 1)
   fprec = rgamma(1, 2, 1)
   u = matrix(0, nrow = 2, ncol = N)
-  cov1 = 1
-  cov2 = 1
-  cov12 = 0
+  prec1 = rgamma(1, 2, 1)
+  prec2 = rgamma(1, 2, 1)
+  pho = runif(1, 0,1)
   tmprec = rgamma(1,0.01, 0.01)  
   tfprec = rgamma(1,0.01, 0.01)
   mcar_time = rnorm(Ttime, sd=0.1)
@@ -64,7 +64,7 @@ initialize_variables <- function(){
   
   return(list(mu = mu, mbeta0 = mbeta0, fbeta0 = fbeta0, mcar_age = mcar_age, fcar_age = fcar_age, 
               mhprec = mhprec, fhprec = fhprec, mhetero = mhetero, fhetero = fhetero,
-              cov1=cov1,cov2=cov2,cov12=cov12, mprec = mprec, fprec = fprec, u = u, tmprec = tmprec, tfprec = tfprec,
+              prec1 = prec1, prec2=prec2,pho=pho, mprec = mprec, fprec = fprec, u = u, tmprec = tmprec, tfprec = tfprec,
               mcar_time = mcar_time, fcar_time = fcar_time))
 }
 
@@ -136,15 +136,16 @@ model <- nimbleCode( {
   # spatially dependent part
   prec1 ~ dgamma(2, 1)
   prec2 ~ dgamma(2, 1)
-  prec12 ~ dgamma(2, 1)
-  cov1 <- 1 / prec1
-  cov2 <- 1 / prec2
-  cov12 <- 1 / prec12
+  pho ~ dunif(0,1)
+  Cov[1,1] <- 1 / prec1
+  Cov[2,2] <- 1 / prec2
+  Cov[1,2] <- sqrt(cov1)*sqrt(cov2)*pho
+  Cov[2,1] <- sqrt(cov1)*sqrt(cov2)*pho
   
-  Cov[1,1] <- cov1
-  Cov[2,2] <- cov2
-  Cov[1,2] <- cov12
-  Cov[2,1] <- cov12
+  # Cov[1,1] <- cov1
+  # Cov[2,2] <- cov2
+  # Cov[1,2] <- cov12
+  # Cov[2,1] <- cov12
   
   #omega[1:2,1:2] ~ dwish(R[1:2,1:2],2)    
   #Cov[1:2,1:2] <- inverse(omega[1:2,1:2])
